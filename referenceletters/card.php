@@ -171,7 +171,8 @@ if ($action == "add") {
 	if (array_key_exists('listmodelfile', $object->element_type_list[$object->element_type])) {
 		if (file_exists($object->element_type_list[$object->element_type]['listmodelfile'])) {
 			include_once $object->element_type_list[$object->element_type]['listmodelfile'];
-			$modellist = call_user_func($object->element_type_list[$object->element_type]['listmodelclass'].'::liste_modeles', $db);
+			$className = $object->element_type_list[$object->element_type]['listmodelclass'];
+			$modellist = call_user_func($className.'::liste_modeles', $db);
 		}
 	}
 	if (empty($modellist)) {
