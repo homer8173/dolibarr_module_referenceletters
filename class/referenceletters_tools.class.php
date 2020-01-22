@@ -20,9 +20,9 @@ class RfltrTools {
 	 * @param $obj peut être une convetion pour Agefodd ou une propal, une cmd, etc ...
 	 * charge le modèle référence letter choisi
 	 */
-	static function load_object_refletter($id_object, $id_model, $obj='', $socid='', $lang_id='') {
+	static function load_object_refletter($id_object, $id_model, &$object, $socid='', $lang_id='') {
 
-		global $db, $conf;
+		global $db, $conf, $langs;
 
 		dol_include_once('/referenceletters/class/referenceletters.class.php');
 		dol_include_once('/referenceletters/class/referenceletterselements.class.php');
@@ -31,7 +31,22 @@ class RfltrTools {
 		$object_refletter = new Referenceletters($db);
 		$object_refletter->fetch($id_model);
 
-		if (! empty($lang_id)) {
+		if(empty($object->thirdparty) && is_callable(array($object, 'fetch_thirdparty'))) $object->fetch_thirdparty();
+
+        if(is_object($object) && get_class($object) === 'Contrat') {
+                $lines = $object->getLinesArray();
+                if (!empty($lines))
+                {
+					$object->lines_active = array();
+
+                    foreach ($lines as $line)
+                    {
+                        if ($line->statut == 4) $object->lines_active[] = $line;
+                    }
+                }
+        }
+
+    	if (! empty($lang_id)) {
 			$outputlangs = new Translate("", $conf);
 			$outputlangs->setDefaultLang($lang_id);
 			$outputlangs->load('main');
@@ -41,8 +56,7 @@ class RfltrTools {
 			$outputlangs=$langs;
 		}
 
-		if(is_object($obj) && (get_class($obj) === 'Facture' || get_class($obj) === 'Commande' || get_class($obj) === 'Propal' || get_class($obj) === 'Contrat'|| get_class($obj) === 'Societe' || get_class($obj) === 'Contact' || get_class($obj) === 'SupplierProposal' || get_class($obj) === 'CommandeFournisseur'|| get_class($obj) === 'FactureFournisseur'))  {
-			$object = &$obj;
+		if(is_object($object) && (get_class($object) === 'Facture' || get_class($object) === 'Commande' || get_class($object) === 'Propal' || get_class($object) === 'Contrat'|| get_class($object) === 'Societe' || get_class($object) === 'Contact' || get_class($object) === 'SupplierProposal' || get_class($object) === 'CommandeFournisseur'|| get_class($object) === 'FactureFournisseur'))  {
 			if(empty($object->thirdparty)) {
 				$object->fetch_thirdparty();
 			}
