@@ -420,7 +420,7 @@ abstract class ModelePDFReferenceLetters extends CommonDocGeneratorReferenceLett
 				}
 
 				if (strpos($chapter_text, '[!-- BEGIN') !== false) {
-					
+
 					$listlines = $odfHandler->setSegment($element_array);
 
 					if (! empty($object->{$element_array})) {
