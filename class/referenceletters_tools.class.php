@@ -61,7 +61,11 @@ class RfltrTools {
 				$object->fetch_thirdparty();
 			}
 		}
-		else $object = self::load_agefodd_object($id_object, $object_refletter, $socid, $obj, $outputlangs);
+		else{
+			$objectLoaded = self::load_agefodd_object($id_object, $object_refletter, $socid, $object, $outputlangs);
+			unset($object); // suppression du lien avec le paramettre $object de cette methode sinon cela change aussi l'objet d'origine
+			$object = $objectLoaded;
+		}
 
 		if (!empty($lang_id)) $langs_chapter = $outputlangs->defaultlang;
 		else {
