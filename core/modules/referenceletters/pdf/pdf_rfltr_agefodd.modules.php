@@ -289,7 +289,9 @@ class pdf_rfltr_agefodd extends ModelePDFReferenceLetters
 					}
 					if(count($test_array) > 1) {
 						//Do not apply this stuff for trainee docuement( générated from Document per trainee, if there is a @beakpage@ in this models, the last page should not be removes
-						if(! empty($conf->global->REF_LETTER_DELETE_LAST_BREAKPAGE_FROM_LOOP) && substr($this->instance_letter->element_type, -8)!=='_trainee') $this->pdf->deletePage($this->pdf->getPage());
+						if(! empty($conf->global->REF_LETTER_DELETE_LAST_BREAKPAGE_FROM_LOOP) && (substr($this->instance_letter->element_type, -8)!=='_trainee' || substr($this->instance_letter->element_type, -16)=='presence_trainee')) {
+							$this->pdf->deletePage($this->pdf->getPage());
+						}
 					}
 				}
 
@@ -309,7 +311,7 @@ class pdf_rfltr_agefodd extends ModelePDFReferenceLetters
 							// Add footer manully beacuse auto footer won't work cause of setPrintFooter=false set just after
 							$this->pdf->SetAutoPageBreak(0);
 							if(empty($instance_letter->use_custom_footer)) {
-							 	$this->_pagefoot($object, $this->outputlangs);
+							 	$this->_pagefoot($this->pdf,$object,$this->outputlangs);
 							 } else {
 							 	$this->_pagefootCustom($object);
 							 }
@@ -553,18 +555,5 @@ class pdf_rfltr_agefodd extends ModelePDFReferenceLetters
 		return $max_y + 5;
 	}
 
-	/**
-	 * Show footer of page.
-	 * Need this->emetteur object
-	 *
-	 * @param PDF &$this->pdf PDF
-	 * @param Object $object show
-	 * @param Translate $this->outputlangs for output
-	 * @param int $hidefreetext text
-	 * @return int height of bottom margin including footer text
-	 */
-	function _pagefoot($object, $hidefreetext = 0) {
-		$this->pdf->SetX($this->marge_gauche);
-		return pdf_pagefoot($this->pdf, $this->outputlangs, '', $this->emetteur, $this->marge_basse, $this->marge_gauche, $this->page_hauteur, $object, 0, $hidefreetext);
-	}
+
 }

@@ -518,7 +518,13 @@ class CommonDocGeneratorReferenceLetters extends CommonDocGenerator
 		$resarray['line_birthday'] = dol_print_date($line->date_birth);
 		$resarray['line_place_birth'] = $line->place_birth;
 		$resarray['line_birthdayformated'] = $line->datebirthformated;
-		$resarray['line_phone'] = implode('/', array($line->tel1,$line->tel2));
+		$tel = $line->tel1;
+		if (empty($tel) && !empty($line->tel2)) {
+			$tel = $line->tel2;
+		} else {
+			$tel = $line->tel1.(!empty($line->tel2)?'/'.$line->tel2:"");
+		}
+		$resarray['line_phone'] = $tel;
 		$resarray['line_email'] = $line->email;
 		$resarray['line_siret'] = $line->thirdparty->idprof2;
 		$resarray['line_birthplace'] = $line->place_birth;
@@ -646,7 +652,7 @@ class CommonDocGeneratorReferenceLetters extends CommonDocGenerator
 	 */
 	function get_substitutionsarray_agefodd(&$object, $outputlangs)
 	{
-		global $db;
+		global $db, $conf;
 
 		dol_include_once('/agefodd/class/html.formagefodd.class.php');
 
@@ -727,6 +733,25 @@ class CommonDocGeneratorReferenceLetters extends CommonDocGenerator
 			$resarray['formation_lieu_divers'] = $agf_place->note1;
 		}
 
+		// Add ICS link replacement to mails
+		$downloadIcsLink = dol_buildpath('public/agenda/agendaexport.php', 2) . '?format=ical&type=event';
+		$documentLinkLabel = "ICS";
+
+		if (!empty($object->trainer_session))
+		{
+			$url = $downloadIcsLink . '&amp;agftrainerid=' . $object->trainer_session->id;
+			$url .= '&exportkey=' . md5($conf->global->MAIN_AGENDA_XCAL_EXPORTKEY . 'agftrainerid' . $object->trainer_session->id);
+			$resarray['formation_agenda_ics'] = '<a href="' . $url . '">' . $documentLinkLabel . '</a>';
+			$resarray['formation_agenda_ics_url'] = $url;
+		}
+		elseif (!empty($object->stagiaire))
+		{
+			$url = $downloadIcsLink . '&amp;agftraineeid=' . $object->stagiaire->id;
+			$url .='&exportkey=' . md5($conf->global->MAIN_AGENDA_XCAL_EXPORTKEY . 'agftraineeid' . $object->stagiaire->id);
+			$resarray['formation_agenda_ics'] = '<a href="' . $url . '">' . $documentLinkLabel . '</a>';
+			$resarray['formation_agenda_ics_url'] = $url;
+		}
+
 		return $resarray;
 	}
 
@@ -789,7 +814,7 @@ class CommonDocGeneratorReferenceLetters extends CommonDocGenerator
 				}
 
 				if (! is_array($value) && ! is_object($value)) {
-					if (is_numeric($value) && strpos($key, 'zip') === false && strpos($key, 'phone') === false && strpos($key, 'cp') === false && strpos($key, 'idprof') === false && $key !== 'id')
+					if (is_numeric($value) && strpos($key, 'zip') === false && strpos($key, 'phone') === false && strpos($key, 'cp') === false && strpos($key, 'idprof') === false && $key !== 'id' && $key !== 'convention_id')
 						$value = price($value);
 
 					// Fix display vars according object
@@ -1234,9 +1259,17 @@ class CommonDocGeneratorReferenceLetters extends CommonDocGenerator
 					}
 				}
 			}
+			elseif($extrafields->attribute_type[$key] == 'sellist') {
+				$object->array_options['options_'.$key] = $this->showOutputFieldValue($extrafields, $key, $object->array_options['options_'.$key]);
+			}
+			elseif($extrafields->attribute_type[$key] == 'chkbxlst')
+			{
+				$object->array_options['options_'.$key] = $this->showOutputFieldValue($extrafields, $key, $object->array_options['options_'.$key]);
+			}
 
 			$array_to_fill=array_merge($array_to_fill, array($array_key.'_options_'.$key => $object->array_options['options_'.$key]));
 		}
+
 
 		return $array_to_fill;
 	}

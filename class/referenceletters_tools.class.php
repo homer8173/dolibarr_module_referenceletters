@@ -46,7 +46,7 @@ class RfltrTools {
                 }
         }
 
-    	if (! empty($lang_id)) {
+		if (! empty($lang_id)) {
 			$outputlangs = new Translate("", $conf);
 			$outputlangs->setDefaultLang($lang_id);
 			$outputlangs->load('main');
@@ -59,6 +59,17 @@ class RfltrTools {
 		if(is_object($object) && (get_class($object) === 'Facture' || get_class($object) === 'Commande' || get_class($object) === 'Propal' || get_class($object) === 'Contrat'|| get_class($object) === 'Societe' || get_class($object) === 'Contact' || get_class($object) === 'SupplierProposal' || get_class($object) === 'CommandeFournisseur'|| get_class($object) === 'FactureFournisseur'))  {
 			if(empty($object->thirdparty)) {
 				$object->fetch_thirdparty();
+			}
+
+            if(get_class($object) === 'Contrat') {
+				$lines = $object->getLinesArray();
+				if (!empty($lines)) {
+					$object->lines_active = array();
+
+					foreach ($lines as $line) {
+						if ($line->statut == 4) $object->lines_active[] = $line;
+					}
+				}
 			}
 		}
 		else{
@@ -120,6 +131,7 @@ class RfltrTools {
 		$instance_letter->title_referenceletters = $object_refletter->title;
 
 		return array($instance_letter, $object);
+
 
 	}
 
